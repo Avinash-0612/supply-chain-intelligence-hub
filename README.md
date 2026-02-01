@@ -78,6 +78,7 @@ Built a comprehensive supply chain analytics solution for a global manufacturing
 
 ### Inventory Optimization Engine
 **Dynamic Safety Stock Calculation:**
+
 ```dax
 Optimal Safety Stock = 
 VAR AvgDemand = AVERAGE(Demand[DailyUsage])
@@ -87,31 +88,36 @@ VAR ZScore = 1.65        // Z-score for 95%
 VAR LeadTime = AVERAGE(Suppliers[LeadTimeDays])
 RETURN
     (AvgDemand * LeadTime) + (ZScore * DemandVariability * SQRT(LeadTime))
+```
 
+**Results:** Reduced safety stock by 30% while maintaining 99%+ service levels
 
-Results: Reduced safety stock by 30% while maintaining 99%+ service levels
-Supplier Risk Matrix
-Scatter plot visualization:
-X-axis: Supplier spend volume ($)
-Y-axis: Reliability score (on-time % × quality score)
-Bubble size: Business criticality
-Color: Risk rating (Red/Yellow/Green)
-Actionable Insights:
-Top right (High spend, High reliability): Strategic partners - negotiate long-term contracts
-Top left (Low spend, High reliability): Potential to increase volume
-Bottom right (High spend, Low reliability): Risky - diversify suppliers or improve performance
-Predictive Reorder Points
+### Supplier Risk Matrix
+**Scatter plot visualization:**
+- **X-axis:** Supplier spend volume ($)
+- **Y-axis:** Reliability score (on-time % × quality score)
+- **Bubble size:** Business criticality
+- **Color:** Risk rating (Red/Yellow/Green)
+
+**Actionable Insights:**
+- **Top right** (High spend, High reliability): Strategic partners - negotiate long-term contracts
+- **Top left** (Low spend, High reliability): Potential to increase volume
+- **Bottom right** (High spend, Low reliability): Risky - diversify suppliers or improve performance
+
+### Predictive Reorder Points
 Using Azure ML to predict demand patterns:
-Seasonality adjustments (holiday spikes, summer slowdowns)
-Trend analysis (growing SKUs vs. declining)
-External factors (promotions, market events)
-Outcome: 25% reduction in emergency freight costs (air freight → standard ground)
-| Metric             | Before   | After    | Improvement   |
-| ------------------ | -------- | -------- | ------------- |
-| Inventory Turnover | 6x/year  | 9x/year  | 50% faster    |
-| Stockout Incidents | 15/month | 2/month  | 87% reduction |
-| Perfect Order Rate | 88%      | 96.5%    | +8.5 pts      |
-| PO Cycle Time      | 8 days   | 4.8 days | 40% faster    |
-| Excess Inventory   | \$8M     | \$3.2M   | 60% reduction |
+- Seasonality adjustments (holiday spikes, summer slowdowns)
+- Trend analysis (growing SKUs vs. declining)
+- External factors (promotions, market events)
 
-**📈 Performance Metrics**
+**Outcome:** 25% reduction in emergency freight costs (air freight → standard ground)
+
+## 📈 Performance Metrics
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Inventory Turnover | 6x/year | 9x/year | 50% faster |
+| Stockout Incidents | 15/month | 2/month | 87% reduction |
+| Perfect Order Rate | 88% | 96.5% | +8.5 pts |
+| PO Cycle Time | 8 days | 4.8 days | 40% faster |
+| Excess Inventory | $8M | $3.2M | 60% reduction |

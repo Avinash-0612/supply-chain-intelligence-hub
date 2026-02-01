@@ -1,1 +1,166 @@
+-- ============================================================================
+-- SUPPLY CHAIN ANALYTICS - DAX MEASURES
+-- Inventory, Procurement, and Supplier Performance KPIs
+-- ============================================================================
 
+-- 1. Total Inventory Value
+Total Inventory Value = 
+SUMX(
+    FactInventory,
+    FactInventory[QuantityOnHand] * FactInventory[UnitCost]
+)
+
+-- 2. Inventory Turnover Ratio
+Inventory Turnover = 
+VAR COGS = SUM(FactGL[CostOfGoodsSold])
+VAR AvgInventory = AVERAGE(FactInventory[InventoryValue])
+RETURN
+    DIVIDE(COGS, AvgInventory, 0)
+
+-- 3. Days Inventory Outstanding (DIO)
+Days Inventory Outstanding = 
+VAR AvgInventory = AVERAGE(FactInventory[InventoryValue])
+VAR COGS_Daily = SUM(FactGL[CostOfGoodsSold]) / 365
+RETURN
+    DIVIDE(AvgInventory, COGS_Daily, 0)
+
+-- 4. Stockout Rate (Percentage of SKUs out of stock)
+Stockout Rate % = 
+VAR OutOfStock = CALCULATE(
+    DISTINCTCOUNT(FactInventory[SKUID]),
+    FactInventory[QuantityOnHand] <= 0
+)
+VAR TotalSKUs = DISTINCTCOUNT(FactInventory[SKUID])
+RETURN
+    DIVIDE(OutOfStock, TotalSKUs, 0)
+
+-- 5. Perfect Order Rate (On-time, In-full, Damage-free)
+Perfect Order Rate % = 
+VAR PerfectOrders = CALCULATE(
+    COUNTROWS(FactPurchaseOrders),
+    FactPurchaseOrders[OnTime] = TRUE,
+    FactPurchaseOrders[InFull] = TRUE,
+    FactPurchaseOrders[DamageFree] = TRUE
+)
+VAR TotalOrders = COUNTROWS(FactPurchaseOrders)
+RETURN
+    DIVIDE(PerfectOrders, TotalOrders, 0)
+
+-- 6. Supplier On-Time Performance %
+Supplier OnTime % = 
+VAR OnTimeDeliveries = CALCULATE(
+    COUNTROWS(FactReceipts),
+    FactReceipts[DaysLate] <= 0
+)
+VAR TotalDeliveries = COUNTROWS(FactReceipts)
+RETURN
+    DIVIDE(OnTimeDeliveries, TotalDeliveries, 0)
+
+-- 7. Purchase Price Variance (PPV)
+Purchase Price Variance = 
+SUMX(
+    FactPurchaseOrders,
+    (FactPurchaseOrders[ActualUnitCost] - FactPurchaseOrders[StandardCost]) * FactPurchaseOrders[Quantity]
+)
+
+Purchase Price Variance % = 
+DIVIDE([Purchase Price Variance], SUMX(FactPurchaseOrders, FactPurchaseOrders[StandardCost] * FactPurchaseOrders[Quantity]), 0)
+
+-- 8. Safety Stock Compliance (Are we maintaining target levels?)
+Safety Stock Compliance % = 
+VAR CompliantSKUs = CALCULATE(
+    DISTINCTCOUNT(FactInventory[SKUID]),
+    FactInventory[QuantityOnHand] >= FactInventory[SafetyStockLevel]
+)
+VAR TotalActiveSKUs = DISTINCTCOUNT(FactInventory[SKUID])
+RETURN
+    DIVIDE(CompliantSKUs, TotalActiveSKUs, 0)
+
+-- 9. Excess Inventory Value (Above max stock level)
+Excess Inventory Value = 
+SUMX(
+    FactInventory,
+    IF(
+        FactInventory[QuantityOnHand] > FactInventory[MaxStockLevel],
+        (FactInventory[QuantityOnHand] - FactInventory[MaxStockLevel]) * FactInventory[UnitCost],
+        0
+    )
+)
+
+-- 10. Obsolete Inventory Risk
+Obsolete Inventory Risk = 
+SUMX(
+    FactInventory,
+    IF(
+        FactInventory[DaysSinceLastMovement] > 180,
+        FactInventory[QuantityOnHand] * FactInventory[UnitCost],
+        0
+    )
+)
+
+-- 11. Supplier Concentration Risk (Spend with top supplier)
+Top Supplier Spend % = 
+VAR TopSupplierSpend = MAXX(
+    VALUES(DimSupplier[SupplierName]),
+    CALCULATE(SUM(FactSpend[Amount]))
+)
+VAR TotalSpend = SUM(FactSpend[Amount])
+RETURN
+    DIVIDE(TopSupplierSpend, TotalSpend, 0)
+
+-- 12. Pipeline Coverage (Open POs vs. Expected Demand)
+Pipeline Coverage Days = 
+VAR OpenPOValue = SUM(FactOpenPO[LineAmount])
+VAR AvgDailyDemand = AVERAGE(FactDemand[DailyDemandValue])
+RETURN
+    DIVIDE(OpenPOValue, AvgDailyDemand, 0)
+
+-- 13. Cash Conversion Cycle (CCC) Component
+Days Payable Outstanding (DPO) = 
+VAR AccountsPayable = SUM(FactBalanceSheet[AccountsPayable])
+VAR COGS_Daily = SUM(FactGL[CostOfGoodsSold]) / 365
+RETURN
+    DIVIDE(AccountsPayable, COGS_Daily, 0)
+
+-- Full Cash Conversion Cycle
+Cash Conversion Cycle = 
+[Days Inventory Outstanding] + [Days Sales Outstanding] - [Days Payable Outstanding]
+
+-- 14. ABC Analysis Classification (Dynamic)
+ABC Class = 
+VAR SKURevenue = [Total Revenue by SKU]
+VAR TotalRevenue = SUMX(ALLSELECTED(FactSales), FactSales[Revenue])
+VAR RunningPct = 
+    SUMX(
+        FILTER(
+            ALLSELECTED(FactSales),
+            FactSales[Revenue] >= EARLIER(FactSales[Revenue])
+        ),
+        FactSales[Revenue]
+    ) / TotalRevenue
+RETURN
+    SWITCH(
+        TRUE(),
+        RunningPct <= 0.8, "A",
+        RunningPct <= 0.95, "B",
+        "C"
+    )
+
+-- 15. Reorder Alert Flag (Visual indicator)
+Reorder Needed = 
+IF(
+    [Current Stock] <= [Safety Stock Level],
+    "🚨 REORDER NOW",
+    IF(
+        [Current Stock] <= [Reorder Point],
+        "⚠️ Reorder Soon",
+        "✅ Stock OK"
+    )
+)
+
+-- 16. Total Cost of Ownership (TCO) per Supplier
+Supplier TCO = 
+SUM(FactInvoices[InvoiceAmount]) 
++ SUM(FactLogistics[FreightCost]) 
++ SUM(FactQuality[ReturnProcessingCost]) 
++ (SUM(FactPurchasing[LaborHours]) * 50)  -- $50/hr labor rate

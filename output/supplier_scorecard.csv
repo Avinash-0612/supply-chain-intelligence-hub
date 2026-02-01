@@ -1,0 +1,6 @@
+SupplierName,OnTimePct,QualityScore,CostVariancePct,TotalSpend,RiskRating,ReliabilityScore
+Supplier-A,97.2,8.9,2.8,1072212,🟡 Medium,8.63
+Supplier-B,87.5,9.6,0.4,1900283,🔴 High,8.4
+Supplier-C,95.8,8.5,-0.4,1062997,🟡 Medium,8.11
+Supplier-D,95.3,7.7,2.8,1496121,🔴 High,7.33
+Supplier-E,86.0,9.4,0.7,1770896,🔴 High,8.1

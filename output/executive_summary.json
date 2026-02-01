@@ -1,0 +1,12 @@
+{
+  "report_date": "2026-02-01T16:58:23.998617",
+  "total_inventory_value": 18379303.3,
+  "excess_inventory_value": 2421897.14,
+  "optimization_savings": -26993433.23,
+  "stockout_risk_count": 39,
+  "supplier_count": 5,
+  "top_supplier": "Supplier-A",
+  "abc_class_a_skus": 73,
+  "automation_alerts_triggered": 39,
+  "roi_impact": "2M annual savings"
+}

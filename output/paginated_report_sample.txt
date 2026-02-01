@@ -1,0 +1,19 @@
+
+PURCHASE ORDER DETAIL REPORT
+Generated: 2026-02-01 16:58
+
+SUPPLIER: Supplier-A
+PERIOD: Last 30 Days
+
+SUMMARY:
+• Total POs: 45
+• Total Lines: 1,250
+• Total Amount: $1,072,212
+• On-Time Delivery: 97.2%
+• Quality Score: 8.9/10
+
+RECOMMENDATION:
+✅ APPROVED FOR VOLUME INCREASE
+Reliability metrics exceed threshold (>8.6)
+
+THANK YOU FOR YOUR PARTNERSHIP
